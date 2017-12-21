@@ -5,6 +5,7 @@ import Time exposing (Time)
 import Color
 import Data.Position exposing (Position)
 import Data.Size exposing (Size)
+import Data.Tile exposing (Tile)
 
 
 worldSize : Size
@@ -12,6 +13,12 @@ worldSize =
     { width = 1000
     , height = 500
     }
+
+
+type SavableField
+    = Unsaved
+    | Saving
+    | Saved
 
 
 type alias Player =
@@ -22,29 +29,23 @@ type alias Player =
     }
 
 
-type alias Tile =
-    { color : Color.Color
-    , position : Position
-    , size : Size
-    , isCollidable : Bool
-    }
-
-
 type alias Model =
     { player : Player
     , pressedKeys : List Key
     , cycleCount : Time
     , tiles : List Tile
+    , tileSaveState : SavableField
     , outline : Tile
     , currentColor : Color.Color
+    , scale : Float
     }
 
 
 defaultPlayer : Player
 defaultPlayer =
-    { position = { x = 205, y = 205 }
-    , speed = 1
-    , size = { width = 5, height = 5 }
+    { position = { x = 200, y = 200 }
+    , speed = 5
+    , size = { width = 25, height = 25 }
     , color = Color.red
     }
 
@@ -55,6 +56,8 @@ defaultModel =
     , pressedKeys = []
     , cycleCount = 0
     , tiles = []
+    , tileSaveState = Unsaved
     , outline = { color = Color.black, position = { x = 200, y = 200 }, size = { width = 50, height = 50 }, isCollidable = False }
     , currentColor = Color.red
+    , scale = 1.0
     }

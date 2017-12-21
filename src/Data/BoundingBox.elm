@@ -30,19 +30,78 @@ doesCollide playerBox otherBox =
         )
 
 
+{-|
+Two boxes the same place are not outside each other
+    >>> isOutside
+    ... { startX = 0.0, startY = 0.0, endX = 5.0, endY = 5.0 }
+    ... { startX = 0.0, startY = 0.0, endX = 5.0, endY = 5.0 }
+    False
+
+One box inside the other is not outside
+    >>> isOutside
+    ... { startX = 0.0, startY = 0.0, endX = 5.0, endY = 5.0 }
+    ... { startX = 0.0, startY = 0.0, endX = 2.0, endY = 5.0 }
+    False
+
+One box inside another is not outside
+    >>> isOutside
+    ... { startX = 0.0, startY = 0.0, endX = 2.0, endY = 5.0 }
+    ... { startX = 0.0, startY = 0.0, endX = 5.0, endY = 5.0 }
+    False
+
+A box that starts at the corner of another is outside
+    >>> isOutside
+    ... { startX = 0.0, startY = 0.0, endX = 5.0, endY = 5.0 }
+    ... { startX = 5.0, startY = 5.0, endX = 10.0, endY = 10.0 }
+    True
+
+A box that ends at the corner of another is outside
+    >>> isOutside
+    ... { startX = 0.0, startY = 0.0, endX = 5.0, endY = 5.0 }
+    ... { startX = -1.0, startY = -1.0, endX = 0.0, endY = 0.0 }
+    True
+
+A box that ends at the start of another is outside
+    >>> isOutside
+    ... { startX = -1.0, startY = -1.0, endX = 0.0, endY = 0.0 }
+    ... { startX = 0.0, startY = 0.0, endX = 5.0, endY = 5.0 }
+    True
+
+A box that shares the left edge is not outside
+    >>> isOutside
+    ... { startX = 0.0, startY = 0.0, endX = 10.0, endY = 10.0 }
+    ... { startX = 2.0, startY = 2.0, endX = 5.0, endY = 5.0 }
+    False
+
+
+    >>> isOutside
+    ... { startX = 175, startY = 195, endX = 200, endY = 220 }
+    ... { startX = 200, startY = 200, endX = 250, endY = 250 }
+    True
+
+-}
 isOutside : BoundingBox -> BoundingBox -> Bool
 isOutside playerBox otherBox =
-    ((playerBox.startX > otherBox.endX)
-        -- ends before the player
-        ||
-            (playerBox.endX < otherBox.startX)
-        -- starts after the player
-        ||
-            (playerBox.startY > otherBox.endY)
-        -- ends before the player
-        ||
-            (playerBox.endY < otherBox.startY)
-     -- starts after the player
+    doesCollide playerBox otherBox
+        |> not
+
+
+{-|
+
+    >>> isInside
+    ... { startX = 205, startY = 205, endX = 210, endY = 210 }
+    ... { startX = 200, startY = 200, endX = 250, endY = 250 }
+    True
+
+    >>> isInside
+    ... { startX = 195, startY = 205, endX = 210, endY = 220 }
+    ... { startX = 200, startY = 200, endX = 250, endY = 250 }
+    False
+-}
+isInside : BoundingBox -> BoundingBox -> Bool
+isInside playerBox otherBox =
+    ((playerBox.startX >= otherBox.startX && playerBox.endX <= otherBox.endX)
+        && (playerBox.startY >= otherBox.startY && playerBox.endY <= otherBox.endY)
     )
 
 

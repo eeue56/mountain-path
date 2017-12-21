@@ -2,7 +2,8 @@ module Game.Update exposing (..)
 
 import Time exposing (Time)
 import Keyboard.Extra exposing (Key, wasd)
-import Game.Model exposing (Model, Player, Tile)
+import Game.Model exposing (Model, Player)
+import Data.Tile exposing (Tile)
 import Data.Position exposing (Position)
 import Data.BoundingBox exposing (BoundingBox, boundingBox, anyCollides)
 import AnimationFrame

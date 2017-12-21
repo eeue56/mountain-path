@@ -5,6 +5,7 @@ import Time exposing (Time)
 import Color
 import Data.Position exposing (Position)
 import Data.Size exposing (Size)
+import Data.Tile exposing (Tile)
 
 
 worldSize : Size
@@ -19,14 +20,6 @@ type alias Player =
     , speed : Float
     , size : Size
     , color : Color.Color
-    }
-
-
-type alias Tile =
-    { color : Color.Color
-    , position : Position
-    , size : Size
-    , isCollidable : Bool
     }
 
 

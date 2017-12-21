@@ -2,18 +2,25 @@ module Admin.Update exposing (..)
 
 import Time exposing (Time)
 import Keyboard.Extra exposing (Key, wasd)
-import Admin.Model exposing (Model, Player, Tile)
-import Data.Position exposing (Position)
-import Data.BoundingBox exposing (BoundingBox, boundingBox, anyCollides, isOutside)
 import AnimationFrame
 import Color
+import LocalStorage
+import Admin.Model exposing (Model, Player, SavableField(..))
+import Data.Position exposing (Position)
+import Data.BoundingBox exposing (BoundingBox, boundingBox, anyCollides, isOutside, isInside)
+import Data.Tile exposing (Tile)
+import Data.Size as Size
 
 
 type Msg
-    = Msg
-    | KeyMsg Keyboard.Extra.Msg
+    = KeyMsg Keyboard.Extra.Msg
     | Tick Time
     | SetColor Int Int Int Float
+    | IncreaseScale
+    | DecreaseScale
+    | IncreaseSize
+    | DecreaseSize
+    | Save
 
 
 maxLoopValue : Float
@@ -24,9 +31,6 @@ maxLoopValue =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Msg ->
-            ( model, Cmd.none )
-
         KeyMsg keyMsg ->
             ( { model
                 | pressedKeys = Keyboard.Extra.update keyMsg model.pressedKeys
@@ -38,7 +42,34 @@ update msg model =
             ( tick time model, Cmd.none )
 
         SetColor r g b a ->
-            ( { model | currentColor = Color.rgba r g b a }, Cmd.none )
+            let
+                newColor =
+                    Color.rgba r g b a
+
+                player =
+                    model.player
+            in
+                ( { model
+                    | currentColor = newColor
+                    , player = { player | color = newColor }
+                  }
+                , Cmd.none
+                )
+
+        DecreaseScale ->
+            ( { model | scale = model.scale - 1.0 }, Cmd.none )
+
+        IncreaseScale ->
+            ( { model | scale = model.scale + 1.0 }, Cmd.none )
+
+        DecreaseSize ->
+            ( { model | player = resizePlayer (-1.0) model.player }, Cmd.none )
+
+        IncreaseSize ->
+            ( { model | player = resizePlayer (1.0) model.player }, Cmd.none )
+
+        Save ->
+            ( { model | tileSaveState = Saving }, Cmd.none )
 
 
 tick : Time -> Model -> Model
@@ -65,13 +96,14 @@ tick time model =
 addTile : Color.Color -> Player -> Tile -> List Tile -> List Tile
 addTile color player outline tiles =
     if canPlace player outline then
-        { color =
-            color
-        , position = player.position
-        , size = player.size
-        , isCollidable = False
-        }
-            :: tiles
+        tiles
+            ++ [ { color =
+                    color
+                 , position = player.position
+                 , size = player.size
+                 , isCollidable = False
+                 }
+               ]
     else
         tiles
 
@@ -83,7 +115,7 @@ joinPosition first second =
 
 multiplyPosition : Float -> { x : Int, y : Int } -> Position
 multiplyPosition n { x, y } =
-    { x = toFloat <| round <| n * (toFloat x), y = n * (toFloat y) }
+    { x = toFloat <| round <| n * (toFloat x), y = toFloat <| round <| n * (toFloat y) }
 
 
 movePlayer : List Key -> List Tile -> Player -> Player
@@ -104,6 +136,11 @@ movePlayer keysDown tiles player =
             player
 
 
+resizePlayer : Float -> Player -> Player
+resizePlayer diff player =
+    { player | size = Size.resize diff player.size }
+
+
 collidableTiles : List Tile -> List Tile
 collidableTiles tiles =
     List.filter (.isCollidable) tiles
@@ -115,16 +152,13 @@ boxedTiles tiles =
 
 
 canPlace : Player -> Tile -> Bool
-canPlace player tile =
+canPlace player outline =
     let
         playerBoundingBox : BoundingBox
         playerBoundingBox =
             boundingBox player.size player.position
     in
-        if isOutside playerBoundingBox (boundingBox tile.size tile.position) then
-            False
-        else
-            True
+        isInside playerBoundingBox (boundingBox outline.size outline.position)
 
 
 canMove : Player -> List Tile -> Bool

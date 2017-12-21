@@ -3,7 +3,8 @@ module Game.View exposing (..)
 import Html exposing (Html)
 import Collage
 import Element
-import Game.Model exposing (Player, Tile, worldSize)
+import Data.Tile exposing (Tile)
+import Game.Model exposing (Player, worldSize)
 import Game.Update exposing (Msg)
 
 
